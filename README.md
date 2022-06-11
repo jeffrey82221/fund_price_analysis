@@ -21,3 +21,6 @@ Calculate and Analyze the Important Index of Mutual Funds
         - [ ] 5.2. Plot the relationship of HitRate vs year. (Define HitRate: percentage of earning in the next week is within the range of +-1 std)
         - [ ] 5.3. Find the min length of years for HitRate to be > 0.95. 
 - [ ] Try to speed up the rolling mean / std calculation using GPU or simply Numpy
+- [ ] Covariance-base index calculation for funds in a company. Ref: https://arxiv.org/pdf/1910.14215.pdf
+
+
