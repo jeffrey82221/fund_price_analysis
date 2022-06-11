@@ -4,7 +4,7 @@ Calculate and Analyze the Important Index of Mutual Funds
 # TODO:
 - [ ] Index Caculation: 
   - [ ] Find sharp ratio of every funds
-      - [ ] 1. Fill in the missing nav (take input efficient_selenium repo and save output in /data of this repo)
+      - [X] 1. Fill in the missing nav (take input efficient_selenium repo and save output in /data of this repo)
       - [ ] 2. Calculate 1-week earning curves
       - [ ] 3. Build a simply aleatoric uncertainty model with training data of 1-month
           - [ ] 3.1 Calculate rolling 1-week earning meaning (with each roll considering data of 1-month)
