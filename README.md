@@ -5,15 +5,18 @@ Calculate and Analyze the Important Index of Mutual Funds
 - [ ] Index Caculation: 
   - [ ] Find sharp ratio of every funds
       - [X] 1. Fill in the missing nav (take input efficient_selenium repo and save output in /data of this repo)
-      - [ ] 2. Calculate 1-week earning curves
-      - [ ] 3. Build a simply aleatoric uncertainty model with training data of 1-month
-          - [ ] 3.1 Calculate rolling 1-week earning meaning (with each roll considering data of 1-month)
-          - [ ] 3.2 Calculate rolling 1-week earning variance (with each roll considering data of 1-month)
-          - [ ] 3.3 The rolling mean & variance should be saved in the same table 
-      - [ ] 4. From the rolling results, we can estimate the total std
-          => total std = (aleatoric variance + epistemic variance) ** 0.5 = (mean of rolling variance + std of rolling means) **0.5
-          - [ ] 4.1. Std is the aggregated calculation of the rolling result of (3)
-          - [ ] 4.2. Sharp Ratio is the aggregated calculation from last rolling mean of (3) / the last result of (4.1) 
+      - [X] 2. Calculate 1-week earning curves
+      - [X] 3. Build a simply aleatoric uncertainty model with training data of 1-month
+          - [X] 3.1 Calculate rolling 1-week earning meaning (with each roll considering data of 1-month)
+          - [X] 3.2 Calculate rolling 1-week earning variance (with each roll considering data of 1-month)
+          - [X] 3.3 The rolling mean & variance should be saved in the same table 
+      - [X] 4. From the rolling results, we can estimate the total std
+          => total std = (aleatoric variance + epistemic variance) ** 0.5 = (mean of rolling variance + variance of rolling means) **0.5
+          - [X] 4.1. Std is the aggregated calculation of (3)
+            - [X] 4.1.1. mean of rolling variance
+            - [X] 4.1.2. var of rolling mean
+            - [X] 4.1.3. vector sum & square root
+          - [X] 4.2. Sharp Ratio is the aggregated calculation from last rolling mean of (3) / the last result of (4.1) 
           (NOTE: sharp ratio = last rolling mean / total std)
 - [ ] Index Valiation:
     - [ ] 5. Sharp Ratio Comparison (Should Consider the length of 3 to be at least X years)
