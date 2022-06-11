@@ -69,7 +69,7 @@ def apply_index_calculation(model_result_table):
     return index_table
 
 
-def find_earliest_plausible_index_date(index_table, threshold = 0.98, hit_rate_window=100):
+def find_earliest_plausible_index_date(index_table, threshold = 0.95, hit_rate_window=100):
     _index_table = index_table.copy()
     _index_table['earning_rate_upper'] = _index_table['earning_rate_mean'] + _index_table['earning_rate_std']
     _index_table['earning_rate_lower'] = _index_table['earning_rate_mean'] - _index_table['earning_rate_std']
@@ -82,18 +82,25 @@ def find_earliest_plausible_index_date(index_table, threshold = 0.98, hit_rate_w
     hit_rate_table = analysis_table.rolling(hit_rate_window).mean().dropna()
     hit_rate_table['hit_rate'] = hit_rate_table['hit']
     hit_rate_table = hit_rate_table[['hit_rate']]
-    print(hit_rate_table['hit_rate'].tolist())
-    earliest_plausible_date = hit_rate_table[hit_rate_table.hit_rate>=threshold].index[0] + timedelta(days=PERIOD)
-    print('Earliest Plausible Index Date:', earliest_plausible_date)
-    return earliest_plausible_date
+    if sum(hit_rate_table.hit_rate>=threshold) > 0:
+        earliest_plausible_date = hit_rate_table[hit_rate_table.hit_rate>=threshold].index[0] + timedelta(days=PERIOD)
+        print('Earliest Plausible Index Date:', earliest_plausible_date)
+        return earliest_plausible_date
+    else:
+        return None
 
 PERIOD = 7
-table = pd.read_hdf('data/nav/TW000T0101Y3.h5', 'raw', auto_close=True)
+# TW000T0101Y3: 兆豐寶鑽貨幣市場證券投資信託
+# TW000T2507Y9: 永豐趨勢平衡基金 -> 0
+# TW000T0502Y2: 元大多福基金
+table = pd.read_hdf('data/nav/TW000T2507Y9.h5', 'raw', auto_close=True)
 earning_table = get_earning_rate(table, period=PERIOD)
-print(earning_table)
 model_result_table = apply_simple_model(earning_table, period=PERIOD)
-print(model_result_table)
 index_table = apply_index_calculation(model_result_table)
 # BackTesting:
-index_table = index_table[index_table.index >= find_earliest_plausible_index_date(index_table)]
-print(index_table)
+earliest_plausible_date = find_earliest_plausible_index_date(index_table)
+if earliest_plausible_date:
+    index_table = index_table[index_table.index >= earliest_plausible_date]
+    print(index_table)
+else:
+    print('No plausible Sharp / Std Index')
