@@ -1,12 +1,6 @@
 import pandas as pd
 from datetime import datetime
-import os
-import tqdm
 import traceback
-import ray
-from ray.util import ActorPool
-import concurrent.futures
-
 class CleanNavETL:
     @staticmethod
     def run(path):
@@ -35,14 +29,3 @@ class CleanNavETL:
         table = table.reset_index().drop_duplicates(
                 subset='date').set_index('date')
         return table
-
-def path_generator(nav_dir):
-    for company_path in os.listdir(nav_dir):
-        if company_path != 'README.md':
-            for table_path in os.listdir(os.path.join(nav_dir, company_path)):
-                if '.h5' in table_path:
-                    yield os.path.join(nav_dir, company_path, table_path)
-
-paths = list(path_generator('../efficient_selenium/data/nav'))
-with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-    _ = list(tqdm.tqdm(executor.map(CleanNavETL.run, paths), total=len(paths)))
