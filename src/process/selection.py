@@ -25,11 +25,9 @@ class _StartDateETL:
         # 拉取hit rate > threshold的最早時間
         if sum(hit_rate_table.hit_rate >= threshold) > 0:
             earliest_plausible_date = hit_rate_table[hit_rate_table.hit_rate>=threshold].index[0] + timedelta(days=period)
-            print('Earliest Plausible Index Date:', earliest_plausible_date)
             return earliest_plausible_date
         else:
             return None
-
 
 class IndexSelectionETL:
     def run(index_table, earning_table, period=7):
