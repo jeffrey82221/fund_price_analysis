@@ -1,19 +1,24 @@
 import pandas as pd
 import time
+from datetime import timedelta
 import gc
 def calculate_earning(nav_list):
     return (nav_list[-1] - nav_list[0]) / nav_list[0]
 
-def apply_simple_model(table, period=7):
-    period = 7
-    earning_rate = table.nav.rolling(period).apply(calculate_earning, raw=True, engine='cython')
+def get_earning_rate(table, period=7):
+    _table = table.copy()
+    earning_rate = _table.nav.rolling(period).apply(calculate_earning, raw=True, engine='cython')
     table['earning_rate'] = earning_rate
-    earning_rate_var = table.earning_rate.rolling(7).var()
-    earning_rate_mean = table.earning_rate.rolling(7).mean()
-    table['earning_rate_var'] = earning_rate_var
-    table['earning_rate_mean'] = earning_rate_mean
-    model_result_table = table[['earning_rate_var', 'earning_rate_mean']].dropna()
-    del table
+    return table[['earning_rate']].dropna()
+
+def apply_simple_model(table, period=7):
+    _table = table.copy()
+    earning_rate_var = _table.earning_rate.rolling(7).var()
+    earning_rate_mean = _table.earning_rate.rolling(7).mean()
+    _table['earning_rate_var'] = earning_rate_var
+    _table['earning_rate_mean'] = earning_rate_mean
+    model_result_table = _table[['earning_rate_var', 'earning_rate_mean']].dropna()
+    del _table
     gc.collect()
     return model_result_table
 
@@ -49,21 +54,46 @@ def reset_global():
     _square_sum = 0.
 
 def apply_index_calculation(model_result_table):
+    _table = model_result_table.copy()
     reset_global()
-    model_result_table['mean_of_var'] = model_result_table.earning_rate_var.rolling(1).apply(
+    _table['mean_of_var'] = _table.earning_rate_var.rolling(1).apply(
         agg_mean, raw=True, engine='cython')
     reset_global()
-    model_result_table['var_of_mean'] = model_result_table.earning_rate_mean.rolling(1).apply(
+    _table['var_of_mean'] = _table.earning_rate_mean.rolling(1).apply(
         agg_var, raw=True, engine='cython')
 
-    model_result_table['earning_rate_std'] = (model_result_table['var_of_mean'] + model_result_table['mean_of_var']) ** 0.5
-    model_result_table['sharp_ratio'] = model_result_table['earning_rate_mean'] / model_result_table['earning_rate_std']
+    _table['earning_rate_std'] = (_table['var_of_mean'] + _table['mean_of_var']) ** 0.5
+    _table['sharp_ratio'] = _table['earning_rate_mean'] / _table['earning_rate_std']
 
-    index_table = model_result_table[['earning_rate_mean', 'earning_rate_std', 'sharp_ratio']]
+    index_table = _table[['earning_rate_mean', 'earning_rate_std', 'sharp_ratio']]
     return index_table
 
+
+def find_earliest_plausible_index_date(index_table, threshold = 0.98, hit_rate_window=100):
+    _index_table = index_table.copy()
+    _index_table['earning_rate_upper'] = _index_table['earning_rate_mean'] + _index_table['earning_rate_std']
+    _index_table['earning_rate_lower'] = _index_table['earning_rate_mean'] - _index_table['earning_rate_std']
+    # Index 是去看七天以後的狀況用的，因此將時間往後七天
+    _index_table.index = _index_table.index.map(lambda x: x + timedelta(days=PERIOD))
+    _index_table.reset_index(inplace=True)
+    analysis_table = _index_table.merge(earning_table.reset_index(), how='inner', on='date').set_index('date')
+    analysis_table['hit'] = (analysis_table['earning_rate'] <= analysis_table['earning_rate_upper']) & (analysis_table['earning_rate'] >= analysis_table['earning_rate_lower'])
+    analysis_table['hit'] = analysis_table['hit'].map(int)
+    hit_rate_table = analysis_table.rolling(hit_rate_window).mean().dropna()
+    hit_rate_table['hit_rate'] = hit_rate_table['hit']
+    hit_rate_table = hit_rate_table[['hit_rate']]
+    print(hit_rate_table['hit_rate'].tolist())
+    earliest_plausible_date = hit_rate_table[hit_rate_table.hit_rate>=threshold].index[0] + timedelta(days=PERIOD)
+    print('Earliest Plausible Index Date:', earliest_plausible_date)
+    return earliest_plausible_date
+
+PERIOD = 7
 table = pd.read_hdf('data/nav/TW000T0101Y3.h5', 'raw', auto_close=True)
-model_result_table = apply_simple_model(table)
+earning_table = get_earning_rate(table, period=PERIOD)
+print(earning_table)
+model_result_table = apply_simple_model(earning_table, period=PERIOD)
 print(model_result_table)
 index_table = apply_index_calculation(model_result_table)
+# BackTesting:
+index_table = index_table[index_table.index >= find_earliest_plausible_index_date(index_table)]
 print(index_table)

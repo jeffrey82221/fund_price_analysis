@@ -3,7 +3,7 @@ Calculate and Analyze the Important Index of Mutual Funds
 
 # TODO:
 - [ ] Index Caculation: 
-  - [ ] Find sharp ratio of every funds
+  - [X] Find sharp ratio of every funds
       - [X] 1. Fill in the missing nav (take input efficient_selenium repo and save output in /data of this repo)
       - [X] 2. Calculate 1-week earning curves
       - [X] 3. Build a simply aleatoric uncertainty model with training data of 1-month
@@ -20,9 +20,10 @@ Calculate and Analyze the Important Index of Mutual Funds
           (NOTE: sharp ratio = last rolling mean / total std)
 - [ ] Index Valiation:
     - [ ] 5. Sharp Ratio Comparison (Should Consider the length of 3 to be at least X years)
-        - [ ] 5.1. Visualize the length historgram from (3)
-        - [ ] 5.2. Plot the relationship of HitRate vs year. (Define HitRate: percentage of earning in the next week is within the range of +-1 std)
-        - [ ] 5.3. Find the min length of years for HitRate to be > 0.95. 
+        - [X] 5.0. Calculate Hit Rate and Find the earliest plausible sharp ratio & std
+        - [-] 5.1. Visualize the length historgram from (3)
+        - [-] 5.2. Plot the relationship of HitRate vs year. (Define HitRate: percentage of earning in the next week is within the range of +-1 std)
+        - [X] 5.3. Find the min length of years for HitRate to be > 0.95. 
 - [ ] Try to speed up the rolling mean / std calculation using GPU or simply Numpy
 - [ ] Covariance-base index calculation for funds in a company. Ref: https://arxiv.org/pdf/1910.14215.pdf
 
