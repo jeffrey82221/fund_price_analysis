@@ -22,3 +22,6 @@ class ProcessNavETL:
             table.to_hdf(f'{self.__period_path}/{file_name}.h5',
                          'index', append=False, format='table',
                          data_columns=table.columns)
+            return True
+        else:
+            return False
