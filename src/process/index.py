@@ -40,6 +40,13 @@ class _NegativeVarianceAggregator:
         return self._var
 
 class IndexETL:
+    result_columns = [
+        'earning_rate_mean', 
+        'earning_rate_std', 
+        'earning_rate_neg_std', 
+        'sharp_ratio', 
+        'sortino_ratio'
+    ]
     @staticmethod
     def run(table):
         _table = table.copy()
@@ -59,5 +66,5 @@ class IndexETL:
         _table['sharp_ratio'] = _table['earning_rate_mean'] / _table['earning_rate_std']
         _table['earning_rate_neg_std'] = (_table['neg_var_of_mean'] + _table['mean_of_neg_var']) ** 0.5
         _table['sortino_ratio'] = _table['earning_rate_mean'] / _table['earning_rate_neg_std']
-        index_table = _table[['earning_rate_mean', 'earning_rate_std', 'earning_rate_neg_std', 'sharp_ratio', 'sortino_ratio']]
+        index_table = _table[IndexETL.result_columns]
         return index_table

@@ -1,3 +1,10 @@
+"""
+TODO:
+- [ ] Do not update every date for ETL
+    - [ ] EarningETL.run
+    - [ ] StatisticModelETL.run
+    - [ ] IndexETL.run
+"""
 import pandas as pd
 from src.process.earning import EarningETL
 from src.process.statistic import StatisticModelETL
@@ -19,9 +26,9 @@ class ProcessNavETL:
         index_table = IndexETL.run(model_result_table)
         index_table = IndexSelectionETL.run(index_table, earning_table, period=self.__period)
         if index_table is not None:
-            table.to_hdf(f'{self.__period_path}/{file_name}.h5',
+            index_table.to_hdf(f'{self.__period_path}/{file_name}.h5',
                          'index', append=False, format='table',
-                         data_columns=table.columns)
+                         data_columns=index_table.columns)
             return True
         else:
             return False

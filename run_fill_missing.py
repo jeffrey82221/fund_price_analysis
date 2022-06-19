@@ -1,3 +1,7 @@
+"""
+TODO:
+- [ ] Allow update only the most recent nav
+"""
 import concurrent.futures
 import tqdm
 from src.process.raw import CleanNavETL

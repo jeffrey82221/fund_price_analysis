@@ -1,3 +1,14 @@
+"""
+TODO:
+- [ ] Do not run over all dates for filling the nav
+    - [ ] get date.max = max date from source 
+    - [ ] get data.min = max date from target 
+    - [ ] get table of range date.min~date.max from source 
+    - [ ] do interpolate
+    - [ ] remove the first-date row of the interpolate table
+    - [ ] append the new table
+    - [ ] NOTE: make sure append the rows in the right order
+"""
 import pandas as pd
 from datetime import datetime
 import traceback
