@@ -18,6 +18,7 @@ class ProcessNavETL:
         self.__period_path = f'{INDEX_PATH}/{self.__period}days'
         if not os.path.exists(self.__period_path):
             os.makedirs(self.__period_path)
+
     def run(self, nav_path):
         file_name = nav_path.split('/')[-1].split('.')[0]
         table = pd.read_hdf(nav_path, 'raw', auto_close=True)
@@ -25,10 +26,19 @@ class ProcessNavETL:
         model_result_table = StatisticModelETL.run(earning_table, period=self.__period)
         index_table = IndexETL.run(model_result_table)
         index_table = IndexSelectionETL.run(index_table, earning_table, period=self.__period)
-        if index_table is not None:
+        if (index_table is not None) and isinstance(index, pd.DataFrame) and len(index_table) > 0:
             index_table.to_hdf(f'{self.__period_path}/{file_name}.h5',
                          'index', append=False, format='table',
                          data_columns=index_table.columns)
-            return True
+            return self._assert_result(file_name)
         else:
+            return False
+
+    def _assert_result(self, file_name):
+        try:
+            pd.read_hdf(f'{self.__period_path}/{file_name}.h5', 'index', auto_close=True)
+            return True
+        except:
+            if os.path.exists(f'{self.__period_path}/{file_name}.h5'):
+                os.remove(f'{self.__period_path}/{file_name}.h5')
             return False
