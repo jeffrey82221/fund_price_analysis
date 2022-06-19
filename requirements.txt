@@ -1,2 +1,3 @@
-ray==
+ray
 pandas
+jum==0.8

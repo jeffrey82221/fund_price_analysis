@@ -18,19 +18,24 @@ VERBOSE = True
 
 class SnapshotETL:
     def __init__(self, date, 
-        period=7, batch_size=100):
+        period=7, batch_size=100, id=0):
         self._success_read_count = 0
         self._success_save_count = 0
         self._date = date
         self._cols = IndexETL.result_columns
         self._period = period # match to the {_period}days folder
         self._batch_size = batch_size
+        self._id = id
 
     def run(self):
         paths = list(index_path_generator(period=self._period))
         path_batch_gen = batch_generator(paths, batch_size=self._batch_size)
         self._drop_h5()
-        for batch in tqdm.tqdm(path_batch_gen, total=int(len(paths)/self._batch_size)):
+        for batch in tqdm.tqdm(
+                path_batch_gen, 
+                desc=str(self._date), 
+                position=self._id,
+                total=int(len(paths)/self._batch_size)):
             with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
                 table = pd.concat(
                     list(filter(lambda x: x is not None, executor.map(
