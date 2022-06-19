@@ -26,7 +26,7 @@ class ProcessNavETL:
         model_result_table = StatisticModelETL.run(earning_table, period=self.__period)
         index_table = IndexETL.run(model_result_table)
         index_table = IndexSelectionETL.run(index_table, earning_table, period=self.__period)
-        if (index_table is not None) and isinstance(index, pd.DataFrame) and len(index_table) > 0:
+        if (index_table is not None) and isinstance(index_table, pd.DataFrame) and len(index_table) > 0:
             index_table.to_hdf(f'{self.__period_path}/{file_name}.h5',
                          'index', append=False, format='table',
                          data_columns=index_table.columns)
