@@ -20,7 +20,15 @@ from datetime import datetime, timedelta
 from src.path import nav_path_gen
 import pandas as pd
 import tqdm
-import jum
+import pickle
+from multiprocessing import freeze_support, Manager
+from src.path import OLDEST_DATE_PATH, index_path_generator
+import os
+import traceback
+from functools import partial
+from src.config import PARALLEL_CNT, SHOT_PERIOD, PERIOD
+from src.utils import get_path_locks
+
 
 def get_earliest_date_by_fund(path):
     store = pd.HDFStore(
@@ -29,45 +37,59 @@ def get_earliest_date_by_fund(path):
     store.close()
     return result
 
-@jum.cache(cache_dir='.jum')
 def get_earliest_date():
-    nav_paths = list(nav_path_gen)
-    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-        result = min(tqdm.tqdm(executor.map(get_earliest_date_by_fund, nav_paths), 
-        total=len(list(nav_paths))))
-    return result.date()
+    if os.path.exists(OLDEST_DATE_PATH):
+        return pickle.load(open(OLDEST_DATE_PATH, 'rb'))
+    else:    
+        nav_paths = list(nav_path_gen)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+            result = min(tqdm.tqdm(executor.map(get_earliest_date_by_fund, nav_paths), 
+                total=len(list(nav_paths)))).date()
+        pickle.dump(result, open(OLDEST_DATE_PATH, 'wb'))
+        return result
 
 earliest_fund_date = get_earliest_date()
 
-def date_generator(period='month'):
-    if period == 'month':
+def date_generator(shot_period):
+    if shot_period == 'month':
         date = datetime.now().date().replace(day=1)
-    elif period == 'year':
+    elif shot_period == 'year':
         date = datetime.now().date().replace(day=1).replace(month=1)
-    elif period == 'day':
+    elif shot_period == 'day':
         date = datetime.now().date()
     while True:
         if date < earliest_fund_date:
             break
         yield str(date)
-        if period == 'month':
+        if shot_period == 'month':
             date = (date - timedelta(days=1)).replace(day=1)
-        elif period == 'year':
+        elif shot_period == 'year':
             date = (date - timedelta(days=1)).replace(day=1).replace(month=1)
-        elif period == 'day':
+        elif shot_period == 'day':
             date = date - timedelta(days=1)
 
-PARALLEL_CNT = 5
-def run(data):
-    i, date = data
-    if i <=PARALLEL_CNT:
-        time.sleep((i%PARALLEL_CNT) * 5)
-    etl = SnapshotETL(date, period=7, id=i)
-    etl.run()
 
-dates = list(date_generator())
-with concurrent.futures.ProcessPoolExecutor(max_workers=PARALLEL_CNT) as executor:
-    _ = list(tqdm.tqdm(executor.map(run, enumerate(dates)), 
-        desc='process snapshot', 
-        total=len(dates)
-    ))
+
+
+
+def run(data, lockpool=None):
+    try:
+        i, date = data
+        time.sleep((i%PARALLEL_CNT) * 10)
+        etl = SnapshotETL(date, period=PERIOD, id=i, lockpool=lockpool)
+        etl.run()
+    except BaseException as e:
+        print(traceback.format_exc())
+        raise e
+
+if __name__ == '__main__':
+    freeze_support()
+    paths = list(index_path_generator(period=PERIOD))
+    lockpool = get_path_locks(paths)
+    print('lock pool created')
+    dates = list(date_generator(SHOT_PERIOD))
+    with concurrent.futures.ProcessPoolExecutor(max_workers=PARALLEL_CNT) as executor:
+        _ = list(tqdm.tqdm(executor.map(partial(run, lockpool=lockpool), enumerate(dates)), 
+            desc='process snapshot', 
+            total=len(dates)
+        ))

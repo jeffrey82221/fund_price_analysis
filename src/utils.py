@@ -1,6 +1,15 @@
 from src.exceptions import IterationFailError
 import traceback
 import gc
+
+def get_path_locks(paths):
+    from multiprocessing import Manager
+    pool_manager = Manager()
+    result = dict()
+    for path in paths:
+        result[path] = pool_manager.Lock()
+    return result
+
 def batch_generator(generator, batch_size=10):
     """
     Args:   

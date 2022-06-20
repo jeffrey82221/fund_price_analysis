@@ -1,0 +1,4 @@
+PERIOD = 30
+PARALLEL_CNT = 8
+SHOT_PERIOD = 'month'
+RETRY = 3

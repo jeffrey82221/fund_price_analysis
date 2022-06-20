@@ -6,7 +6,7 @@ SRC_PATH = os.path.join(Path(__file__).parent.parent.parent, 'efficient_selenium
 NAV_PATH = os.path.join(Path(__file__).parent.parent, 'data', 'nav')
 INDEX_PATH = os.path.join(Path(__file__).parent.parent, 'data', 'index')
 SNAPSHOT_PATH = os.path.join(Path(__file__).parent.parent, 'data', 'snapshot')
-
+OLDEST_DATE_PATH = os.path.join(Path(__file__).parent.parent, 'data', 'oldest_date.pickle')
 print('src path:', SRC_PATH)
 print('nav path:', NAV_PATH)
 def source_path_generator(nav_dir):
